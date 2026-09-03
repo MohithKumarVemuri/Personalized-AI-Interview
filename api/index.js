@@ -1,4 +1,4 @@
-// Polyfill browser globals required by pdfjs-dist and other web libraries in Node serverless
+// Polyfill browser globals required in Node serverless
 if (typeof globalThis.DOMMatrix === 'undefined') {
   globalThis.DOMMatrix = class DOMMatrix {};
 }
@@ -17,6 +17,18 @@ let cachedApp = null;
 let cachedConnectDB = null;
 
 export default async function handler(req, res) {
+  // 1. Immediately set CORS headers on every response (including errors)
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+
+  // 2. Respond to CORS preflight OPTIONS immediately
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
     if (!cachedApp || !cachedConnectDB) {
       const appModule = await import('../server/src/app.js');
