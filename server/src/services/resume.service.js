@@ -1,8 +1,21 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+// Polyfill browser globals required by pdfjs-dist in Node.js environments
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {};
+}
+if (typeof globalThis.Path2D === 'undefined') {
+  globalThis.Path2D = class Path2D {};
+}
+if (typeof globalThis.ImageData === 'undefined') {
+  globalThis.ImageData = class ImageData {};
+}
+
 import Resume from '../models/Resume.model.js';
 
 export const parseResumePDF = async (pdfBuffer) => {
   try {
+    // Lazily load pdfjs-dist only when parsing a resume
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+
     const uint8Array = new Uint8Array(
       pdfBuffer.buffer,
       pdfBuffer.byteOffset,

@@ -1,3 +1,14 @@
+// Polyfill browser globals required by pdfjs-dist and other web libraries in Node serverless
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {};
+}
+if (typeof globalThis.Path2D === 'undefined') {
+  globalThis.Path2D = class Path2D {};
+}
+if (typeof globalThis.ImageData === 'undefined') {
+  globalThis.ImageData = class ImageData {};
+}
+
 export const config = {
   maxDuration: 60,
 };
