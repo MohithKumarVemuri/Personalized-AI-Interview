@@ -25,40 +25,13 @@ const app = express();
 // MIDDLEWARE (runs on every request, in order)
 // ============================================
 
-// 1. CORS: Allow our frontend to talk to this backend
-const rawOrigins = process.env.CLIENT_URL || "http://localhost:5173";
-const allowedOrigins = rawOrigins.split(",").map((url) => url.trim().replace(/\/+$/, ""));
-
+// 1. CORS: Allow all valid origins (production, previews, localhost) with credentials
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-      if (!origin) return callback(null, true);
-
-      const cleanOrigin = origin.replace(/\/+$/, "");
-
-      // Check explicit allowed origins list
-      if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes("*")) {
-        return callback(null, true);
-      }
-
-      // Automatically allow all Vercel deployment domains (*.vercel.app)
-      try {
-        const url = new URL(cleanOrigin);
-        if (
-          url.hostname.endsWith(".vercel.app") ||
-          url.hostname === "localhost" ||
-          url.hostname === "127.0.0.1"
-        ) {
-          return callback(null, true);
-        }
-      } catch (e) {
-        // invalid URL format, ignore
-      }
-
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
