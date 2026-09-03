@@ -32,17 +32,28 @@ const allowedOrigins = rawOrigins.split(",").map((url) => url.trim().replace(/\/
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, uptime checks)
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
 
       const cleanOrigin = origin.replace(/\/+$/, "");
+
+      // Check explicit allowed origins list
       if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes("*")) {
         return callback(null, true);
       }
 
-      // Allow any localhost in non-production
-      if (process.env.NODE_ENV !== "production" && /^http:\/\/localhost(:\d+)?$/.test(cleanOrigin)) {
-        return callback(null, true);
+      // Automatically allow all Vercel deployment domains (*.vercel.app)
+      try {
+        const url = new URL(cleanOrigin);
+        if (
+          url.hostname.endsWith(".vercel.app") ||
+          url.hostname === "localhost" ||
+          url.hostname === "127.0.0.1"
+        ) {
+          return callback(null, true);
+        }
+      } catch (e) {
+        // invalid URL format, ignore
       }
 
       return callback(new Error(`CORS blocked for origin: ${origin}`));
