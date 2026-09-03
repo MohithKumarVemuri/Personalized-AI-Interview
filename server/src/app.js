@@ -24,18 +24,51 @@ const app = express();
 // MIDDLEWARE (runs on every request, in order)
 // ============================================
 
-// 1. CORS: Allow our frontend (React) to talk to this backend
-//    Without this, browsers will block requests from localhost:5173 → localhost:5000
+// 1. CORS: Allow our frontend to talk to this backend
+const rawOrigins = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = rawOrigins.split(",").map((url) => url.trim().replace(/\/+$/, ""));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true, // 🔥 THIS FIXES YOUR ERROR
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, uptime checks)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/+$/, "");
+      if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+
+      // Allow any localhost in non-production
+      if (process.env.NODE_ENV !== "production" && /^http:\/\/localhost(:\d+)?$/.test(cleanOrigin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
   })
 );
 
 // 2. Body Parser: Convert incoming JSON requests to JavaScript objects
 //    10mb limit to handle large resume text and interview data
 app.use(express.json({ limit: '10mb' }));
+
+// ============================================
+// HEALTH CHECK & ROOT ROUTES
+// ============================================
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Personalized AI Interview Backend is running",
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+});
 
 // ============================================
 // ROUTES
