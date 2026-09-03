@@ -44,23 +44,6 @@ An intelligent AI-powered interview platform that simulates real technical inter
 
 ---
 
-## 🌐 Live Deployment (Vercel)
-
-This full-stack project is configured to run entirely on **Vercel** with zero configuration required for CORS or routing.
-
-### Environment Variables Required
-Configure these in **Vercel Project Settings > Environment Variables**:
-
-| Variable | Description |
-| :--- | :--- |
-| `MONGODB_URI` | MongoDB Atlas cluster connection string |
-| `JWT_SECRET` | Secret key for signing user authentication tokens |
-| `GEMINI_API_KEY` | Google AI Studio Gemini API key |
-| `MURF_API_KEY` | Murf AI speech synthesis API key |
-| `ASSEMBLYAI_API_KEY` | AssemblyAI speech-to-text API key |
-| `NODE_ENV` | `production` |
-
----
 
 ## ⚙️ Local Development Setup
 
