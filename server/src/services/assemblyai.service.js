@@ -3,9 +3,18 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const client = new AssemblyAI({
-  apiKey: process.env.ASSEMBLYAI_API_KEY,
-});
+let assemblyClient = null;
+
+const getAssemblyClient = () => {
+  if (!assemblyClient) {
+    const apiKey = process.env.ASSEMBLYAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('ASSEMBLYAI_API_KEY is missing in environment variables');
+    }
+    assemblyClient = new AssemblyAI({ apiKey });
+  }
+  return assemblyClient;
+};
 
 export const transcribeAudio = async (audioBuffer, originalName) => {
   const extension = path.extname(originalName) || '.webm';
@@ -14,6 +23,7 @@ export const transcribeAudio = async (audioBuffer, originalName) => {
   try {
     fs.writeFileSync(tempPath, audioBuffer);
 
+    const client = getAssemblyClient();
     const transcript = await client.transcripts.transcribe({
       audio: tempPath,
       speech_models: ['universal-2'],

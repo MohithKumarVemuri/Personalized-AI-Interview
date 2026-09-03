@@ -1,20 +1,30 @@
-import app from '../server/src/app.js';
-import connectDB from '../server/src/config/db.config.js';
-
 export const config = {
   maxDuration: 60,
 };
 
+let cachedApp = null;
+let cachedConnectDB = null;
+
 export default async function handler(req, res) {
   try {
-    await connectDB();
+    if (!cachedApp || !cachedConnectDB) {
+      const appModule = await import('../server/src/app.js');
+      const dbModule = await import('../server/src/config/db.config.js');
+      cachedApp = appModule.default;
+      cachedConnectDB = dbModule.default;
+    }
+
+    // Connect to MongoDB
+    await cachedConnectDB();
+
+    // Delegate request to Express app
+    return cachedApp(req, res);
   } catch (err) {
-    console.error('Failed to connect to MongoDB in serverless handler:', err.message);
+    console.error('Serverless Handler Error:', err);
     return res.status(500).json({
       success: false,
-      message: `Database connection failed: ${err.message}`,
+      message: err.message || 'Server initialization failed',
+      stack: process.env.NODE_ENV === 'production' ? err.stack : undefined,
     });
   }
-
-  return app(req, res);
 }
