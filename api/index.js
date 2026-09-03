@@ -11,7 +11,8 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('Failed to connect to MongoDB in serverless handler:', err.message);
     return res.status(500).json({
-      error: 'Database connection failed. Please ensure MONGODB_URI is set in Vercel Environment Variables.',
+      success: false,
+      message: `Database connection failed: ${err.message}`,
     });
   }
 
